@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pro Analiz Dashboard</title>
+    <title>Pro Analiz Dashboard v2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -34,17 +34,17 @@
       }
     </style>
   </head>
-  <body class="bg-slate-50 text-slate-800">
+  <body class="bg-slate-50 text-slate-800 font-sans">
     <div class="max-w-[1600px] mx-auto px-4 py-6">
       <div
-        class="flex flex-col lg:flex-row justify-between items-center mb-6 gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200"
+        class="flex flex-col lg:flex-row justify-between items-center mb-6 gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 text-slate-900"
       >
         <div class="flex items-center gap-4">
           <div
-            class="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-200"
+            class="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-200 text-white"
           >
             <svg
-              class="w-6 h-6 text-white"
+              class="w-6 h-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -58,11 +58,9 @@
             </svg>
           </div>
           <div>
-            <h1 class="text-xl font-bold text-slate-900 leading-tight">
-              DataProcessor Pro
-            </h1>
-            <p class="text-xs text-slate-500 font-medium">
-              Lokal Açar Söz Analizi & Vurğulama
+            <h1 class="text-xl font-bold tracking-tight">DataProcessor Pro</h1>
+            <p class="text-xs text-slate-500 font-medium italic">
+              Lokal Emal & Ağıllı Eksport
             </p>
           </div>
         </div>
@@ -82,7 +80,7 @@
           <label
             for="fileInput"
             class="cursor-pointer bg-white border border-slate-200 px-4 py-2 rounded-xl hover:bg-slate-50 transition text-sm font-bold shadow-sm"
-            >Fayl Seç</label
+            >Excel Seç</label
           >
           <button
             onclick="startAnalysis()"
@@ -98,18 +96,18 @@
           <div
             class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200"
           >
-            <div class="flex justify-between items-center mb-5">
+            <div class="flex justify-between items-center mb-5 border-b pb-2">
               <h3
-                class="font-bold text-slate-800 text-sm uppercase tracking-wider"
+                class="font-bold text-slate-800 text-xs uppercase tracking-widest"
               >
                 Kateqoriyalar
               </h3>
               <button
                 onclick="addNewCategory()"
-                class="bg-indigo-50 text-indigo-600 p-1.5 rounded-lg hover:bg-indigo-100 transition"
+                class="text-indigo-600 hover:scale-110 transition"
               >
                 <svg
-                  class="w-4 h-4"
+                  class="w-5 h-5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -130,35 +128,34 @@
           </div>
         </div>
 
-        <div class="lg:col-span-6 space-y-6">
+        <div class="lg:col-span-6">
           <div
-            class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full"
+            class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-[80vh] flex flex-col"
           >
             <div
-              class="p-4 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center gap-4"
+              class="p-4 bg-slate-50 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4"
             >
-              <div class="relative flex-1">
+              <div class="relative flex-1 min-w-[200px]">
                 <input
                   type="text"
                   id="searchInput"
                   onkeyup="filterTable()"
-                  placeholder="Mətndə axtar..."
-                  class="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm transition-all"
+                  placeholder="Siyahıda axtar..."
+                  class="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm shadow-sm transition-all"
                 />
-                <span class="absolute left-3 top-2.5">🔍</span>
+                <span class="absolute left-3 top-2.5 text-slate-400">🔍</span>
               </div>
               <button
                 id="downloadBtn"
                 onclick="exportExcel()"
-                class="hidden bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-emerald-700 transition"
+                class="hidden bg-emerald-600 text-white px-5 py-2 rounded-xl text-xs font-bold hover:bg-emerald-700 transition flex items-center gap-2"
               >
-                Yüklə
+                <span>📥</span> Excel Yüklə
               </button>
             </div>
-
-            <div class="overflow-y-auto h-[70vh] custom-scrollbar">
+            <div class="overflow-y-auto custom-scrollbar flex-1">
               <table class="w-full text-left border-collapse">
-                <thead class="bg-slate-50 sticky top-0 z-20 shadow-sm">
+                <thead class="bg-slate-50 sticky top-0 z-20 border-b">
                   <tr>
                     <th
                       class="p-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest"
@@ -166,9 +163,9 @@
                       Sənədin Məzmunu
                     </th>
                     <th
-                      class="p-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest w-28 text-center"
+                      class="p-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest w-32 text-center"
                     >
-                      Kateqoriya
+                      Nəticə
                     </th>
                   </tr>
                 </thead>
@@ -181,20 +178,17 @@
           </div>
         </div>
 
-        <div class="lg:col-span-3 space-y-6">
+        <div class="lg:col-span-3">
           <div
             class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 sticky top-6"
           >
             <h3
-              class="font-bold text-slate-800 text-sm uppercase tracking-wider mb-6 text-center"
+              class="font-bold text-slate-800 text-xs uppercase tracking-widest mb-6 text-center"
             >
-              Canlı Statistika
+              Analiz Qrafiki
             </h3>
             <div id="chart"></div>
-            <div
-              id="statsSummary"
-              class="mt-6 space-y-2 text-xs font-medium"
-            ></div>
+            <div id="statsSummary" class="mt-6 space-y-2 border-t pt-4"></div>
           </div>
         </div>
       </div>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pro Analiz Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .highlight {
+        background-color: #fef08a;
+        padding: 0 2px;
+        border-radius: 2px;
+        font-weight: 600;
+        color: #854d0e;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-50 text-slate-800">
+    <div class="max-w-[1600px] mx-auto px-4 py-6">
+      <div
+        class="flex flex-col lg:flex-row justify-between items-center mb-6 gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200"
+      >
+        <div class="flex items-center gap-4">
+          <div
+            class="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-200"
+          >
+            <svg
+              class="w-6 h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              ></path>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold text-slate-900 leading-tight">
+              DataProcessor Pro
+            </h1>
+            <p class="text-xs text-slate-500 font-medium">
+              Lokal Açar Söz Analizi & Vurğulama
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button
+            onclick="resetAll()"
+            class="text-slate-500 hover:text-red-600 px-3 py-2 transition text-sm font-semibold"
+          >
+            Sıfırla
+          </button>
+          <input
+            type="file"
+            id="fileInput"
+            class="hidden"
+            accept=".xlsx, .csv"
+          />
+          <label
+            for="fileInput"
+            class="cursor-pointer bg-white border border-slate-200 px-4 py-2 rounded-xl hover:bg-slate-50 transition text-sm font-bold shadow-sm"
+            >Fayl Seç</label
+          >
+          <button
+            onclick="startAnalysis()"
+            class="bg-indigo-600 text-white px-6 py-2 rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-100 transition text-sm font-bold"
+          >
+            Analizi Başlat
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-3 space-y-6">
+          <div
+            class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200"
+          >
+            <div class="flex justify-between items-center mb-5">
+              <h3
+                class="font-bold text-slate-800 text-sm uppercase tracking-wider"
+              >
+                Kateqoriyalar
+              </h3>
+              <button
+                onclick="addNewCategory()"
+                class="bg-indigo-50 text-indigo-600 p-1.5 rounded-lg hover:bg-indigo-100 transition"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    d="M12 4v16m8-8H4"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+            <div
+              id="rulesContainer"
+              class="space-y-3 max-h-[70vh] overflow-y-auto custom-scrollbar pr-2"
+            ></div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-6 space-y-6">
+          <div
+            class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full"
+          >
+            <div
+              class="p-4 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center gap-4"
+            >
+              <div class="relative flex-1">
+                <input
+                  type="text"
+                  id="searchInput"
+                  onkeyup="filterTable()"
+                  placeholder="Mətndə axtar..."
+                  class="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm transition-all"
+                />
+                <span class="absolute left-3 top-2.5">🔍</span>
+              </div>
+              <button
+                id="downloadBtn"
+                onclick="exportExcel()"
+                class="hidden bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-emerald-700 transition"
+              >
+                Yüklə
+              </button>
+            </div>
+
+            <div class="overflow-y-auto h-[70vh] custom-scrollbar">
+              <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-50 sticky top-0 z-20 shadow-sm">
+                  <tr>
+                    <th
+                      class="p-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest"
+                    >
+                      Sənədin Məzmunu
+                    </th>
+                    <th
+                      class="p-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest w-28 text-center"
+                    >
+                      Kateqoriya
+                    </th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="tableBody"
+                  class="divide-y divide-slate-100 text-sm"
+                ></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-3 space-y-6">
+          <div
+            class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 sticky top-6"
+          >
+            <h3
+              class="font-bold text-slate-800 text-sm uppercase tracking-wider mb-6 text-center"
+            >
+              Canlı Statistika
+            </h3>
+            <div id="chart"></div>
+            <div
+              id="statsSummary"
+              class="mt-6 space-y-2 text-xs font-medium"
+            ></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>

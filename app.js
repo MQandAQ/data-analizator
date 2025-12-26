@@ -59,10 +59,10 @@ function exportConfig() {
 
   const ws = XLSX.utils.json_to_sheet(configData);
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Sistem_Qaydaları");
+  XLSX.utils.book_append_sheet(wb, ws, "Sistem_Kateqoriyaları");
 
   // Digər istifadəçinin tanıması üçün xüsusi adla yükləyirik
-  XLSX.writeFile(wb, "Analiz_Sistem_Qaydalari.xlsx");
+  XLSX.writeFile(wb, "Analiz_Sistem_Kateqoriyaları.xlsx");
 }
 
 // 2. Başqa istifadəçidən gələn Excel faylından qaydaları oxu və tətbiq et
@@ -75,11 +75,11 @@ function importConfig(event) {
     try {
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: "array" });
-      const sheet = workbook.Sheets["Sistem_Qaydaları"];
+      const sheet = workbook.Sheets["Sistem_Kateqoriyaları"];
 
       if (!sheet) {
         alert(
-          "Xəta: Bu fayl uyğun formatda deyil (Sistem_Qaydaları vərəqi tapılmadı)."
+          "Xəta: Bu fayl uyğun formatda deyil (Sistem_Kateqoriyaları vərəqi tapılmadı)."
         );
         return;
       }
@@ -100,13 +100,13 @@ function importConfig(event) {
 
       if (Object.keys(newRules).length > 0) {
         if (
-          confirm("Yeni qaydalar yüklənsin? Mövcud qaydalarınız əvəz olunacaq.")
+          confirm("Yeni kateqoriyalar yüklənsin? Mövcud kateqoriyalarınız əvəz olunacaq.")
         ) {
           CATEGORY_RULES = newRules;
           localStorage.setItem("myRules", JSON.stringify(CATEGORY_RULES));
           initRulesUI(); // Sol paneli yenilə
           if (rawData.length > 0) analyzeData(); // Əgər ekranda data varsa, yenidən analiz et
-          alert("Qaydalar uğurla yükləndi!");
+          alert("Kateqoriyalar uğurla yükləndi!");
         }
       }
     } catch (err) {
@@ -311,3 +311,141 @@ function addNewCategory() {
 }
 
 initRulesUI();
+
+// --- UI Bildiriş Sistemi ---
+
+function showToast(message, type = "success") {
+  const container = document.getElementById("toast-container");
+  const toast = document.createElement("div");
+  const colors = {
+    success: "bg-emerald-500",
+    error: "bg-rose-500",
+    info: "bg-indigo-500",
+  };
+
+  toast.className = `${colors[type]} text-white px-6 py-3 rounded-2xl shadow-lg text-sm font-bold flex items-center gap-3 animate-bounce-in`;
+  toast.innerHTML = `
+        <span>${
+          type === "success" ? "✅" : type === "error" ? "❌" : "ℹ️"
+        }</span>
+        ${message}
+    `;
+
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(20px)";
+    setTimeout(() => toast.remove(), 500);
+  }, 3000);
+}
+
+function showConfirm(title, text, onConfirm) {
+  const modal = document.getElementById("custom-modal");
+  const content = document.getElementById("modal-content");
+  document.getElementById("modal-title").innerText = title;
+  document.getElementById("modal-text").innerText = text;
+
+  modal.classList.remove("hidden");
+  setTimeout(() => {
+    content.classList.remove("scale-95", "opacity-0");
+    content.classList.add("scale-100", "opacity-100");
+  }, 10);
+
+  const confirmBtn = document.getElementById("modal-confirm-btn");
+  confirmBtn.onclick = () => {
+    onConfirm();
+    closeModal();
+  };
+}
+
+function closeModal() {
+  const modal = document.getElementById("custom-modal");
+  const content = document.getElementById("modal-content");
+  content.classList.add("scale-95", "opacity-0");
+  setTimeout(() => modal.classList.add("hidden"), 200);
+}
+
+// --- Yenilənmiş Funksiyalar ---
+
+function importConfig(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheet = workbook.Sheets["Sistem_Kateqoriyaları"];
+
+      if (!sheet) {
+        showToast("Uyğun formatda fayl deyil!", "error");
+        return;
+      }
+
+      const rows = XLSX.utils.sheet_to_json(sheet);
+      const newRules = {};
+      rows.forEach((row) => {
+        const cat = row["Kateqoriya"];
+        const words = row["Açar Sözlər"];
+        if (cat && words) {
+          newRules[cat] = words
+            .split(",")
+            .map((w) => w.trim())
+            .filter((w) => w !== "");
+        }
+      });
+
+      if (Object.keys(newRules).length > 0) {
+        showConfirm(
+          "Kateqoriyaları Yüklə",
+          "Mövcud kateqoriyalarınız yeniləri ilə əvəz olunacaq. Davam edilsin?",
+          () => {
+            CATEGORY_RULES = newRules;
+            localStorage.setItem("myRules", JSON.stringify(CATEGORY_RULES));
+            initRulesUI();
+            if (rawData.length > 0) analyzeData();
+            showToast("Kateqoriyalar uğurla yükləndi!");
+          }
+        );
+      }
+    } catch (err) {
+      showToast("Fayl oxunarkən xəta!", "error");
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  event.target.value = "";
+}
+
+function resetAll() {
+  showConfirm(
+    "Sıfırlama",
+    "Bütün emal edilmiş məlumatlar təmizlənəcək. Əminsiniz?",
+    () => {
+      rawData = [];
+      processedData = [];
+      document.getElementById("tableBody").innerHTML = "";
+      document.getElementById("chart").innerHTML = "";
+      document.getElementById("statsSummary").innerHTML = "";
+      document.getElementById("searchInput").value = "";
+      document.getElementById("downloadBtn").classList.add("hidden");
+      showToast("Məlumatlar təmizləndi", "info");
+    }
+  );
+}
+
+function startAnalysis() {
+  const fileInput = document.getElementById("fileInput");
+  if (!fileInput.files[0]) return showToast("Fayl seçilməyib!", "error");
+
+  showToast("Analiz başladı...", "info");
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: "array" });
+    rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+    analyzeData();
+    showToast("Analiz tamamlandı!");
+  };
+  reader.readAsArrayBuffer(fileInput.files[0]);
+}

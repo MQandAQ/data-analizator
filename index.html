@@ -88,6 +88,30 @@
           >
             Analizi Başlat
           </button>
+
+          <div
+            class="flex items-center gap-2 border-l pl-3 ml-3 border-slate-200"
+          >
+            <button
+              onclick="exportConfig()"
+              class="text-indigo-600 hover:bg-indigo-50 px-3 py-2 rounded-lg transition text-xs font-bold border border-indigo-100"
+            >
+              ⚙️ Kateqoriyaları eksport et
+            </button>
+            <input
+              type="file"
+              id="configInput"
+              class="hidden"
+              accept=".xlsx"
+              onchange="importConfig(event)"
+            />
+            <label
+              for="configInput"
+              class="cursor-pointer bg-slate-800 text-white px-3 py-2 rounded-lg hover:bg-slate-900 transition text-xs font-bold shadow-sm"
+            >
+              📥 Kateqoriyaları yüklə
+            </label>
+          </div>
         </div>
       </div>
 

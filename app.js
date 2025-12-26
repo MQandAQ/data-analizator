@@ -50,6 +50,73 @@ function handleKey(e, cat) {
   }
 }
 
+// 1. Mövcud qaydaları Excel faylı kimi eksport et
+function exportConfig() {
+  const configData = [];
+  for (const [cat, words] of Object.entries(CATEGORY_RULES)) {
+    configData.push({ Kateqoriya: cat, "Açar Sözlər": words.join(", ") });
+  }
+
+  const ws = XLSX.utils.json_to_sheet(configData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Sistem_Qaydaları");
+
+  // Digər istifadəçinin tanıması üçün xüsusi adla yükləyirik
+  XLSX.writeFile(wb, "Analiz_Sistem_Qaydalari.xlsx");
+}
+
+// 2. Başqa istifadəçidən gələn Excel faylından qaydaları oxu və tətbiq et
+function importConfig(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheet = workbook.Sheets["Sistem_Qaydaları"];
+
+      if (!sheet) {
+        alert(
+          "Xəta: Bu fayl uyğun formatda deyil (Sistem_Qaydaları vərəqi tapılmadı)."
+        );
+        return;
+      }
+
+      const rows = XLSX.utils.sheet_to_json(sheet);
+      const newRules = {};
+
+      rows.forEach((row) => {
+        const cat = row["Kateqoriya"];
+        const words = row["Açar Sözlər"];
+        if (cat && words) {
+          newRules[cat] = words
+            .split(",")
+            .map((w) => w.trim())
+            .filter((w) => w !== "");
+        }
+      });
+
+      if (Object.keys(newRules).length > 0) {
+        if (
+          confirm("Yeni qaydalar yüklənsin? Mövcud qaydalarınız əvəz olunacaq.")
+        ) {
+          CATEGORY_RULES = newRules;
+          localStorage.setItem("myRules", JSON.stringify(CATEGORY_RULES));
+          initRulesUI(); // Sol paneli yenilə
+          if (rawData.length > 0) analyzeData(); // Əgər ekranda data varsa, yenidən analiz et
+          alert("Qaydalar uğurla yükləndi!");
+        }
+      }
+    } catch (err) {
+      alert("Fayl oxunarkən xəta baş verdi: " + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  event.target.value = ""; // Eyni faylı təkrar seçmək üçün təmizləyirik
+}
+
 function highlightText(text, category) {
   if (category === "Digər" || !CATEGORY_RULES[category]) return text;
   let highlighted = text;
